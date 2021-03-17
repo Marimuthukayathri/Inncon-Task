@@ -1,0 +1,237 @@
+package Framework;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+
+public class BO_Action {
+
+	private static final JavascriptExecutor driver = null;
+	public static List<WebElement> objActObj;
+	public static String strBcFnClmFstNm ,strFlag, strBcFnClmLstNm, strDrpdnObjNm, strChkObjValue,strTemp,strRdbtObjNm,strTmpClmLst,currentWindow,strTitle,strChkObjtxt, browserName,strXpath,strBcFnFieldValueVf = null;
+	public static boolean strreexeFlg=true;
+	public static int incwaitstl, count, time;
+	public static WebElement checkbox; 
+	public static boolean result;
+//	public static ArrayList<String> handles = new ArrayList<String> (((RemoteWebDriver) driver).getWindowHandles());
+	
+		
+	
+	public static void Performaction(RemoteWebDriver driver, String strBcFnFieldname, String strBcFnFieldValue,
+			String strBusFn, String strSheet) throws Throwable {
+
+		// For splitting the Business function field value for verification method and
+		// get object method
+
+		if (strBcFnFieldValue.contains("##")) {
+			String[] strTmpBcFnFieldValue = strBcFnFieldValue.split("##");
+			strBcFnFieldValue = strTmpBcFnFieldValue[0];
+			strBcFnFieldValueVf = strTmpBcFnFieldValue[1];
+		}
+
+		else {
+			strBcFnFieldValueVf = "NO value";
+		}
+
+		if (strBcFnFieldValue.contains("$$") && !strBcFnFieldValue.contains("::")) {
+			strBcFnFieldValue = BO_Utility.readOutputData(strBcFnFieldValue);
+
+		}
+
+		strBcFnClmFstNm = strBcFnFieldname.substring(0, strBcFnFieldname.indexOf('_'));
+		strTmpClmLst = strBcFnFieldname.substring(strBcFnFieldname.indexOf('_') + 1, strBcFnFieldname.length());
+
+		if (strTmpClmLst.contains("_"))
+
+			strBcFnClmLstNm = strTmpClmLst.substring(0, strTmpClmLst.indexOf('_'));
+		else
+
+			strBcFnClmLstNm = strBcFnFieldname.substring(strBcFnFieldname.indexOf('_') + 1, strBcFnFieldname.length());
+
+		if (!strBcFnClmFstNm.equals("swtclose") && !strBcFnClmFstNm.equals("swtto") && !strBcFnClmFstNm.equals("scrshot") && !strBcFnClmFstNm.equals("swtbk")
+				&& !strBcFnClmFstNm.equals("cal") && !strBcFnClmFstNm.equals("Put")) {
+			objActObj = fetching_exceldata.getObject(strBcFnFieldname, strBcFnFieldValue, strSheet);
+
+		}
+
+		if (!strBcFnClmFstNm.equals("swtclose") && !strBcFnClmFstNm.equals("swtto") && !strBcFnClmFstNm.equals("swtbk") && !strBcFnClmFstNm.equals("scrshot")
+				&& !strBcFnClmFstNm.equals("cal") && !strBcFnClmFstNm.equals("Put")) {
+			int incwait = 0;
+
+			while ((objActObj.isEmpty()) && (incwait < 1) && (objActObj == null)) {
+				Thread.sleep(5000);
+				objActObj = fetching_exceldata.getObject(strBcFnFieldname, strBcFnFieldValue, strSheet);
+				incwait = incwait + 1;
+			}
+		}
+
+		if (!strBcFnFieldValue.contains("::")) {
+			switch (strBcFnClmFstNm.toUpperCase()) {
+
+	case "BTN":
+
+				if (objActObj.isEmpty() && (objActObj == null)) {
+					custom_Reports.print_Report("FAIL", "Perform Action", "Element could not be found btn");
+					strreexeFlg = false;
+				}
+
+				try {
+
+					WebElement element = objActObj.get(0);
+					objActObj.get(0).click();
+					custom_Reports.print_Report("INFO", "Perform Action",
+							strBcFnClmLstNm + " button is clicked..<a href='" + custom_Reports.takeSnap()
+									+ "'> Click here </a> to view the screen shot");
+
+				} catch (Exception e) {
+
+					System.out.println(e.getMessage());
+					custom_Reports.print_Report("FAIL", "Perform Action", e.getLocalizedMessage() + "<a href='"
+							+ custom_Reports.takeSnap() + "'> Click here </a> to view the screen shot");
+					strreexeFlg = false;
+				}
+				break;
+
+			case "LNK":
+
+				if (objActObj.isEmpty() && (objActObj == null)) {
+					custom_Reports.print_Report("FAIL", "Perform Action", "Element could not be found lnk");
+					strreexeFlg = false;
+				}
+
+				try {
+
+					WebElement lnkEle = objActObj.get(0);
+					strTemp = lnkEle.getAttribute("href");
+					String text = lnkEle.getText();
+					// System.out.println(text);
+					// System.out.println(strTemp);
+					lnkEle.click();
+					custom_Reports.print_Report("INFO", "Perform Action",
+							strBcFnClmLstNm + " Link is clicked..<a href='" + custom_Reports.takeSnap()
+									+ "'> Click here </a> to view the screen shot");
+					
+				} catch (Exception e) {
+					// System.out.println(e);
+					custom_Reports.print_Report("FAIL", "Perform Action",
+							"Unknown exception occured while clicking the :" + strBcFnClmLstNm + "Link.<a href='"
+									+ custom_Reports.takeSnap() + "'> Click here </a> to view the screen shot");
+					strreexeFlg = false;
+				}
+
+				break;
+
+			case "CHK":
+
+				if (objActObj.isEmpty() && (objActObj == null)) {
+					custom_Reports.print_Report("FAIL", "Perform Action", "Element could not be found chk");
+					strreexeFlg = false;
+				}
+
+				try {
+
+					WebElement chkEle = objActObj.get(0);
+					String pathe = BO_Utility.readJSONRepository(strBcFnFieldname, strSheet);
+					WebDriverWait wait = new WebDriverWait(driver, 20);
+					wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(pathe)));
+					Actions actions = new Actions(driver);
+					actions.moveToElement(chkEle).click().build().perform();
+
+					custom_Reports.print_Report("INFO", "Perform Action",
+							strBcFnClmLstNm + " value is selected in the checkbox");
+					// chkEle.click();
+
+				} catch (WebDriverException e) {
+					System.out.println(e.getMessage());
+					custom_Reports.print_Report("FAIL", "Perform Action",
+							"Unknown exception occured while selecting the :" + strBcFnClmLstNm
+									+ "value in the checkbox.<a href='" + custom_Reports.takeSnap()
+									+ "'> Click here </a> to view the screen shot");
+
+					strreexeFlg = false;
+				}
+				break;
+
+			case "GETDRPDN":
+
+				if (objActObj.isEmpty() && (objActObj == null)) {
+					custom_Reports.print_Report("FAIL", "Perform Action", "Element could not be found txt");
+					strreexeFlg = false;
+				}
+				try {
+					WebElement txtEle = objActObj.get(0);
+					System.out.println("String_value: " + strBcFnFieldValue);
+					String[] strTemp = strBcFnFieldValue.split("\\%\\%");
+					String strTestName = strTemp[0];
+					String strFieldId = strTemp[1];
+					if (!txtEle.isDisplayed()) {
+						txtEle.click();
+					}
+					Select select = new Select(txtEle);
+					txtEle = select.getFirstSelectedOption();
+					String text = txtEle.getText();
+				//	System.out.println("Selected element: " + text);
+					BO_Utility.writeOutputData(strTestName, strFieldId, text);
+					custom_Reports.print_Report("INFO", "Perform Action",
+							text + " value is enterted in " + strBcFnClmLstNm + " textbox");
+
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+					custom_Reports.print_Report("FAIL", "Perform Action", "Unknown exception occured ");
+					strreexeFlg = false;
+				}
+				break;
+
+			case "TXT":
+
+				if (objActObj.isEmpty() && (objActObj == null)) {
+					custom_Reports.print_Report("FAIL", "Perform Action", "Element could not be found txt");
+					strreexeFlg = false;
+				}
+				try {
+
+					WebElement txtEle = objActObj.get(0);
+					if (strBcFnFieldValue.equals("Click")) {
+						txtEle.click();
+					} else if (strBcFnFieldValue.equalsIgnoreCase("Read")) {
+						strBcFnFieldValue = txtEle.getText();
+						System.out.println("Existing Text is : " + strBcFnFieldValue);
+						custom_Reports.print_Report("INFO", "Perform Action",
+								strBcFnFieldValue + " value is read in " + strBcFnClmLstNm + " textbox");
+					} else {
+						/*
+						 * String pathe = BO_Utility.readJSONRepository(strBcFnFieldname, strSheet);
+						 * WebDriverWait wait = new WebDriverWait (driver, 30);
+						 * wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(pathe)));
+						 */
+						txtEle.clear();
+						txtEle.sendKeys(strBcFnFieldValue);
+						custom_Reports.print_Report("INFO", "Perform Action",
+								strBcFnFieldValue + " value is enterted in " + strBcFnClmLstNm + " textbox.<a href='"
+										+ custom_Reports.takeSnap() + "'> Click here </a> to view the screen shot");
+					}
+				} catch (Exception e) {
+					custom_Reports.print_Report("FAIL", "Perform Action", "Unknown exception occured.<a href='"
+							+ custom_Reports.takeSnap() + "'> Click here </a> to view the screen shot");
+					strreexeFlg = false;
+				}
+				break;
+
+			}
+
+		}
+		}
+
+	}
+
+	}

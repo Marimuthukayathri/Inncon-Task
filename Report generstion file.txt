@@ -1,0 +1,86 @@
+public class custom_Reports {
+	public static ExtentReports extent;
+	public static ExtentTest logger;
+	static String filePath;
+
+	public static void startReport() {
+
+		String strCurDate = new SimpleDateFormat("yyyyMMdd_HH_mm_ss").format(new Date());
+		filePath = "./execution_Reports/Automation_Execution_report_"+strCurDate+".html";// +strCurDate+".html";
+		extent.addSystemInfo("Application", "BO").addSystemInfo("User Name", "Mari");
+	}
+
+	public static void strtTest(String Tc_Name) {
+
+		logger = extent.startTest(Tc_Name);
+    }
+	
+	public static void print_Report(String strStatus, String strStep, String strDesc) throws IOException {
+
+		System.out.println(strStatus + "--->" + strStep + ": " + strDesc);
+		if (strStatus.toUpperCase().equals("PASS")) {
+			logger.log(LogStatus.PASS, strStep, strDesc);
+
+		} else if (strStatus.toUpperCase().equals("FAIL")) {
+			logger.log(LogStatus.FAIL, strStep, strDesc);
+			envExecStatus = "Fail";
+		} else if (strStatus.toUpperCase().equals("INFO")) {
+			logger.log(LogStatus.INFO, strStep, strDesc);
+
+		} else if (strStatus.toUpperCase().equals("WARNING")) {
+			logger.log(LogStatus.WARNING, strStep, strDesc);
+
+		}
+	}
+
+	
+	public static void copy_LatestReport() throws IOException{
+		
+	try {
+	
+			File source = new File(filePath);			
+			File dest = new File("./recent_execution_Reports/BO_Automation_Execution_report.html");
+			if(dest.exists()) 
+				dest.delete();
+			FileUtils.copyFile(source, dest);
+			
+			if(envExecStatus.equals("Fail")) {
+				Assert.fail();
+	        }
+
+	} catch(NullPointerException e) {
+			System.out.println(e.getMessage()); 
+		} 
+	}
+	
+
+	public static String takeSnap() throws WebDriverException, IOException {
+
+		String Sharepath;
+		long number = (long) Math.floor(Math.random() * 900000000L) + 10000000L; // Snapshort for unique Name
+		String destination = System.getProperty("user.dir") + "/recent_execution_Reports/reports/images/" + number + ".jpg";
+		String name = getSystemName();
+		File finalDestination = new File(destination);
+		FileUtils.copyFile(Load_driver.driver.getScreenshotAs(OutputType.FILE), finalDestination);
+		if(name.equalsIgnoreCase("DESKTOP-OA1OO22"))
+		 Sharepath = System.getProperty("user.dir") + "/recent_execution_Reports/reports/images/" + number + ".jpg";
+		else
+		Sharepath = "file://"+name+"/recent_execution_Reports/reports/images/" + number + ".jpg";
+		// To open the screenshots in different machine
+		return Sharepath;
+	}
+	
+	
+	public static String  getSystemName(){  
+	
+	try{
+	        InetAddress inetaddress=InetAddress.getLocalHost(); //Get LocalHost reference
+	        String name = inetaddress.getHostName(); //Get Host Name
+	      return name;
+	    }
+	    catch(Exception E){
+	        E.printStackTrace();  
+		return null;
+	    }
+	}
+}

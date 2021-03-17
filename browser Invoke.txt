@@ -1,0 +1,49 @@
+public class Load_driver {
+
+	public static RemoteWebDriver driver;     
+
+	public static RemoteWebDriver invokeBrowser() throws Throwable  {
+	 
+		
+		try {
+			
+
+			strDriverQry = "Select * from Configuration";
+			Recordset rs = data_Connections.qry_DataFile(strDriverQry);
+			while (rs.next()) {
+				ArrayList<String> arrFiledNames = rs.getFieldNames();
+				for (String i : arrFiledNames) {
+					if (i.contains("browser")) {
+						if(rs.getField(i).equalsIgnoreCase("Chrome"))
+					{
+							System.setProperty("webdriver.chrome.driver", "./drivers/chromedriver.exe");
+						    driver = new ChromeDriver();
+							break;
+					}
+		} catch (InvalidArgumentException e) {
+		}
+
+		try {
+			strDriverQry = "Select * from Configuration";
+			Recordset rs = data_Connections.qry_DataFile(strDriverQry);
+			while (rs.next()) {
+				ArrayList<String> arrFiledNames = rs.getFieldNames();
+				for (String i : arrFiledNames) {
+					if (i.contains("URL")) {
+						driver.navigate().to(rs.getField(i)); 
+						break;
+					}
+				}
+			}
+		} catch (InvalidArgumentException e) {
+		}
+		return driver;
+	}
+
+	public static void closeBrowser() {
+	
+		driver.quit();
+	}
+		
+
+}

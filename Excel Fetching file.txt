@@ -1,0 +1,138 @@
+public class fetching_exceldata {
+
+	public static RemoteWebDriver driver;
+	public static String fieldvalue, strSheet, strBusFn, strField, strBcFnClmFstNm, strBcFnClmLstNm, strBcFnFieldValue,
+			             strFieldTC, strTmpClmLst, strTemp, strstrBcFnClmLstNmV1, strstrBcFnClmLstNmV2;
+	static List<WebElement> objActObj;
+	public static int incremt = 0, incwait = 0;
+
+	@Test
+	public void exceldata() throws Throwable {
+ 
+		try {
+
+			strDriverQry = "Select * from Business_Driven_Flow where Exec_Flag='YES'";
+			Recordset rs = data_Connections.qry_DataFile(strDriverQry);
+
+			while (rs.next()) {
+				
+				custom_Reports.strtTest(rs.getField("TestCaseName"));
+				custom_Reports.print_Report("INFO", "<font size =3.3><b>Initiating Execution</b></font>",
+				"<font size =3.3><b>Executing " + rs.getField("TestCaseName") + " test case .</b></font>");
+				custom_Reports.print_Report("INFO", "Test Case Description", rs.getField("MainFunction"));
+				driver = Load_driver.invokeBrowser();
+				ArrayList<String> exlFieldNames = rs.getFieldNames();
+
+				for (int i = 0; i < exlFieldNames.size(); i++) 	{
+
+					if ((exlFieldNames.get(i)).contains("TestCaseName")) {
+						strFieldTC = rs.getField(exlFieldNames.get(i));
+					}
+					if ((exlFieldNames.get(i)).contains("Business_Component")) {
+						strField = rs.getField(exlFieldNames.get(i));
+						if (strField.equals("")) {
+							break;
+						} else {
+							strSheet = strField.substring(strField.indexOf('_') + 1, strField.length()); 
+							strBusFn = strField.substring(0, strField.indexOf('_'));
+							custom_Reports.print_Report("INFO", "<b>" + strSheet + " Screen</b>",
+									"<b>Executing " + strBusFn + " functionality in the " + strSheet + " screen<b>");
+							fetchsheet(strSheet, strBusFn, strFieldTC);
+
+						}
+
+					}
+
+				}
+
+			}
+
+		} catch(Exception e) {
+		
+			custom_Reports.print_Report("FAIL", "Perform Action", "Unknown exception occured " + e);
+		}
+
+	}
+
+	public static void fetchsheet(String strSheet, String strBusFn, String strFieldTC) throws Throwable { 
+
+		try {
+			
+			String strDriverQry = " Select * from " + strSheet + " where BusinessFuntion = '" + strBusFn
+					+ "' AND TestCaseName = '" + strFieldTC + "'";
+			Recordset rs = data_Connections.qry_DataFile(strDriverQry);
+
+			while (rs.next()) {
+				ArrayList<String> astrBcFnFieldNames = rs.getFieldNames();
+
+				for (String strBcFnFieldname : astrBcFnFieldNames) {
+					if (strBcFnFieldname.contains("_") && !strBcFnFieldname.equals("")) {
+
+						strBcFnClmFstNm = strBcFnFieldname.substring(0, strBcFnFieldname.indexOf('_'));
+						strBcFnClmLstNm = strBcFnFieldname.substring(strBcFnFieldname.indexOf('_') + 1,
+								strBcFnFieldname.length());
+						strBcFnFieldValue = rs.getField(strBcFnFieldname);
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+	}
+
+	public static List<WebElement> getObject(String strBcFnFieldname, String strBcFnFieldValue, String strSheet)
+			throws Throwable {
+
+		String strXpath;
+		strBcFnClmFstNm = strBcFnFieldname.substring(0, strBcFnFieldname.indexOf('_'));
+		strTmpClmLst = strBcFnFieldname.substring(strBcFnFieldname.indexOf('_') + 1, strBcFnFieldname.length());
+
+		if (strTmpClmLst.contains("_"))
+			strBcFnClmLstNm = strTmpClmLst.substring(0, strTmpClmLst.indexOf('_'));
+		else
+			strBcFnClmLstNm = strBcFnFieldname.substring(strBcFnFieldname.indexOf('_') + 1, strBcFnFieldname.length());
+
+
+		try {
+				strXpath = BO_Utility.readJSONRepository(strBcFnFieldname, strSheet);
+				strXpath = BO_CommonFunction.dynamicData(strXpath);
+
+				switch (strBcFnClmFstNm.toUpperCase()) {
+
+				case "BTN":
+				case "TXT":
+			
+				case "GET":
+					objActObj = driver.findElementsByXPath(strXpath);
+					BO_CommonFunction.wait(driver, objActObj, strBcFnClmFstNm);
+					break;
+
+				case "LNK":
+					objActObj = driver.findElementsByXPath(strXpath);
+					if (objActObj.isEmpty())
+						objActObj = driver.findElementsByXPath("//a[text()='" + strBcFnFieldValue + "']");
+					BO_CommonFunction.wait(driver, objActObj, strBcFnClmFstNm);
+					break;
+
+				case "CHK":
+					objActObj = driver.findElementsByXPath(strXpath);
+					if (objActObj.isEmpty())
+						objActObj = driver.findElementsByXPath(
+								"//a[text()='" + strBcFnFieldValue + "']//preceding::*[1][self::input]");
+					BO_CommonFunction.wait(driver, objActObj, strBcFnClmFstNm);
+					break;
+
+
+			} catch (Throwable e) {
+
+				custom_Reports.print_Report("FAIL", "Perform Action",
+				strBcFnClmFstNm + "Element could not be found in getobject " + strBcFnClmLstNm);
+			}
+
+	}
+
+
+	
+}

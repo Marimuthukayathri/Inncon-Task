@@ -1,0 +1,111 @@
+public class BO_CommonFunction {
+	public static RemoteWebDriver driver;
+	public static Alert alert;
+	public static List<WebElement> objActObj;
+	private static int i, orderCount = 0;
+	public static String strWkGrpdf, strLogin, strPwd, strDrpdnObjNm, qrCodeFile, QRResult, strBcFnFieldValue1,
+			filePath;
+
+	static JavascriptExecutor executor = (JavascriptExecutor) driver;
+
+	public static void userupdate(String strBcFnFieldValue) throws IOException, FilloException, InterruptedException {
+
+		// System.out.println(strBcFnFieldValue);
+		String newuser = BO_Utility.readOutputData1(strBcFnFieldValue);
+		String[] strTemp = strBcFnFieldValue.split("\\ ");
+		String strTestName = strTemp[0];
+		String strFieldName = strTemp[1];
+
+		int Value = Integer.parseInt(newuser.replaceAll("[^0-9]", "")); // returns 123
+		Value++;
+
+		newuser = newuser.replaceAll("[^a-zA-Z]", "");
+		// newuser = newuser.substring(0, 4);
+		newuser = newuser + Value;
+		System.out.println(newuser);
+		BO_Utility.writeOutputData(strTestName, strFieldName, newuser);
+		// Thread.sleep(4000);
+	}
+
+	public static void pwdupdate() throws IOException, FilloException, InterruptedException {
+
+		try {
+
+			String newpass = BO_Utility.readOutputData("New_pass$$new_pass");
+			int Value = Integer.parseInt(newpass.replaceAll("[^0-9]", "")); // returns 123
+			Value++;
+			newpass = newpass.substring(0, 5);
+			newpass = newpass + Value;
+			System.out.println(newpass);
+			BO_Utility.writeOutputData("New_pass", "new_pass", newpass);
+
+		} catch (Exception e) {
+			e.getMessage();
+		}
+	}
+
+	public static void getCurrentDate(String strBcFnFieldValueVf) {
+
+		String[] strTemp = strBcFnFieldValueVf.split("\\$\\$");
+		String strTestName = strTemp[0];
+		String strFieldId = strTemp[1];
+		String strCurDate = new SimpleDateFormat("MM/dd/yyy").format(new Date());
+		System.out.println(strCurDate);
+		BO_Utility.writeOutputData(strTestName, strFieldId, strCurDate);
+	}
+
+	public static void Actclk(RemoteWebDriver driver, String path) {
+
+		Actions ac = new Actions(driver);
+		WebElement ele = driver.findElementByXPath(path);
+		ac.moveToElement(ele).click().perform();
+	}
+
+	public static String testtype(RemoteWebDriver driver) throws Throwable {
+
+		String testtype = null;
+		try {
+			String strDriverQry;
+			strDriverQry = "Select * from Configuration";
+			Recordset rs = data_Connections.qry_DataFile(strDriverQry);
+			while (rs.next()) {
+				ArrayList<String> arrFiledNames = rs.getFieldNames();
+				for (String i : arrFiledNames) {
+					if (i.contains("Test_Type")) {
+						testtype = rs.getField(i);
+						break;
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		return testtype;
+	}
+
+	public static void datepicker(RemoteWebDriver driver, String strBcFnFieldValue) throws WebDriverException, IOException { 
+				
+try {
+	//	String strToday = new  SimpleDateFormat("dd").format(new Date());
+    WebElement dateWidget = driver.findElementByXPath("//div[@id='ui-datepicker-div']"); 
+    List<WebElement> columns = dateWidget.findElements(By.xpath("//div[@id='ui-datepicker-div']//tbody/tr/td")); 
+    
+    	for (WebElement cell: columns) {
+	      if (cell.getText().equals(strBcFnFieldValue)) {
+	              cell.click();
+	              custom_Reports.print_Report("PASS", "Perform Action",	strBcFnFieldValue + " is selected..<a href='"
+	              + custom_Reports.takeSnap()+ "'> Click here </a> to view the screen shot");
+	               break;
+		            }
+    			}
+	} catch (Exception e) {
+			System.out.println(e.getMessage());
+			custom_Reports.print_Report("FAIL", "Perform Action", e.getLocalizedMessage() + "<a href='"
+					+ custom_Reports.takeSnap() + "'> Click here </a> to view the screen shot");
+		}
+
+	}   
+
+
+
+}    
